@@ -41,3 +41,7 @@ application.properties
 *.pem
 secrets.json
 service-account.json
+
+### Logs ###
+*.log
+app.log
