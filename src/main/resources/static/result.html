@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Results</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600&family=Outfit:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+
+<body>
+    <div class="container center-screen">
+        <div class="card">
+            <h1 id="greeting">Great Job! 🎉</h1>
+            <div style="font-size: 4rem; font-weight: 700; color: var(--primary); margin: 1rem 0;">
+                <span id="score">0</span><span style="font-size: 2rem; color: #CCC;">/<span id="total">0</span></span>
+            </div>
+            <p style="color: #666; margin-bottom: 2rem;">You've completed the Spelling Bee Challenge!</p>
+
+            <div style="display: flex; gap: 1rem; flex-direction: column;">
+                <button onclick="location.href='revision.html'" class="btn-accent btn-large">Review Your Mistakes
+                    📝</button>
+                <button onclick="location.href='dashboard.html'" class="btn-primary btn-large">Back to Dashboard
+                    🏠</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const studentName = localStorage.getItem('studentName') || 'Student';
+        const result = JSON.parse(localStorage.getItem('lastResult'));
+
+        document.getElementById('greeting').textContent = `Keep it up, ${studentName}! 🐝`;
+        if (result) {
+            document.getElementById('score').textContent = result.score;
+            document.getElementById('total').textContent = result.totalQuestions || 45; // Fallback
+            // Celebration if score > 50%
+            if (result.score > (result.totalQuestions / 2)) confetti();
+        }
+    </script>
+</body>
+
+</html>

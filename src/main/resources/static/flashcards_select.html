@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Cards Selection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .letter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .letter-btn {
+            padding: 1rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: white;
+            border: 2px solid #EEE;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--primary);
+        }
+
+        .letter-btn:hover {
+            border-color: var(--primary);
+            background: #f0f7ff;
+            transform: translateY(-2px);
+        }
+
+        .letter-btn.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container fade-in">
+        <header style="text-align: center; position: relative;">
+            <a href="dashboard.html"
+                style="position: absolute; left: 0; top: 0; display: inline-block; text-decoration: none; color: #666; font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span>&larr;</span> Back
+            </a>
+            <h1>Flash Cards Selection</h1>
+            <p>Choose 'All' or a specific letter to practice with flash cards.</p>
+        </header>
+
+        <div class="card">
+            <div id="categoryDisplay"
+                style="text-align: center; font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem; color: #666;">
+            </div>
+
+            <div class="letter-grid" id="letterGrid">
+                <button class="letter-btn" onclick="selectLetter('ALL')">ALL</button>
+            </div>
+
+            <div style="margin-top: 2rem; text-align: center;">
+                <button class="btn-primary" id="startBtn" disabled onclick="startStudy()">Start Flash Cards</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const category = params.get('category');
+        if (!category) window.location.href = 'dashboard.html';
+
+        document.getElementById('categoryDisplay').textContent = "Category: " + category.replace('_', ' ');
+
+        let selectedLetter = null;
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
+        const grid = document.getElementById('letterGrid');
+
+        letters.forEach(l => {
+            const btn = document.createElement('button');
+            btn.className = 'letter-btn';
+            btn.textContent = l;
+            btn.onclick = () => selectLetter(l);
+            grid.appendChild(btn);
+        });
+
+        function selectLetter(l) {
+            selectedLetter = l;
+            document.querySelectorAll('.letter-btn').forEach(b => b.classList.remove('selected'));
+
+            // Highlight text match buttons
+            Array.from(document.querySelectorAll('.letter-btn')).find(b => b.textContent === l).classList.add('selected');
+
+            const startBtn = document.getElementById('startBtn');
+            startBtn.disabled = false;
+            startBtn.style.opacity = "1";
+        }
+
+        function startStudy() {
+            if (!selectedLetter) return;
+            window.location.href = `flashcards.html?category=${category}&letter=${selectedLetter}`;
+        }
+    </script>
+</body>
+
+</html>

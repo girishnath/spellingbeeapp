@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Cards</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600&family=Outfit:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .flashcard-container {
+            perspective: 1000px;
+            width: 100%;
+            max-width: 500px;
+            height: 300px;
+            margin: 2rem auto;
+            cursor: pointer;
+        }
+
+        .flashcard {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+        }
+
+        .flashcard-front {
+            background-color: white;
+        }
+
+        .flashcard-back {
+            background-color: var(--card-bg);
+            /* Or a slightly different shade */
+            transform: rotateY(180deg);
+        }
+
+        .word-display {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 3rem;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .definition-text {
+            color: #555;
+            font-size: 1.1rem;
+            line-height: 1.5;
+            margin-top: 1rem;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            font-size: 3rem;
+            cursor: pointer;
+            color: var(--primary);
+            opacity: 0.7;
+            transition: all 0.2s;
+            padding: 0 1rem;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .nav-btn:disabled {
+            color: #ccc;
+            cursor: default;
+        }
+
+        .navigation-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .flip-instruction {
+            font-size: 0.8rem;
+            color: #999;
+            margin-top: 2rem;
+            position: absolute;
+            bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container center-screen" style="flex-direction: column;">
+
+        <div
+            style="width: 100%; max-width: 700px; position: relative; margin-bottom: 2rem; display: flex; justify-content: center; align-items: center;">
+            <button onclick="window.location.href='flashcards_select.html?category=' + category"
+                style="position: absolute; left: 0; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #666; font-weight: bold; display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; border-radius: 8px; transition: background 0.2s;">
+                <span>&larr;</span> Back
+            </button>
+            <div id="progress" style="color: #666; font-size: 1.1rem; font-weight: 500;">Word 1 / 10</div>
+        </div>
+
+        <div class="navigation-row">
+            <button class="nav-btn" id="prevBtn" onclick="prevWord()">&larr;</button>
+
+            <div class="flashcard-container" onclick="flipCard()">
+                <div class="flashcard" id="flashcard">
+
+                    <!-- Front Side -->
+                    <div class="flashcard-face flashcard-front">
+                        <div class="audio-container">
+                            <button class="audio-btn" id="audioBtn" title="Play Word">
+                                <svg class="audio-icon" viewBox="0 0 24 24">
+                                    <path
+                                        d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+                                </svg>
+                            </button>
+                            <button class="btn-alt-audio" id="altAudioBtn" title="Alternate Pronunciation (Online)">
+                                <span style="font-size: 1rem;">🌍</span> Say it in a different way
+                            </button>
+                        </div>
+                        <div id="definitionArea" class="definition-text">
+                            Loading definition...
+                        </div>
+                        <div class="flip-instruction">Click to flip</div>
+                    </div>
+
+                    <!-- Back Side -->
+                    <div class="flashcard-face flashcard-back">
+                        <div id="wordDisplay" class="word-display">WORD</div>
+                        <div class="flip-instruction">Click to flip back</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <button class="nav-btn" id="nextBtn" onclick="nextWord()">&rarr;</button>
+        </div>
+
+    </div>
+    <script src="tts.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const category = params.get('category');
+        const letter = params.get('letter');
+
+        if (!category || !letter) window.location.href = 'dashboard.html';
+
+        let words = [];
+        let currentIdx = 0;
+        let isFlipped = false;
+
+        const els = {
+            progress: document.getElementById('progress'),
+            audioBtn: document.getElementById('audioBtn'),
+            defArea: document.getElementById('definitionArea'),
+            wordDisplay: document.getElementById('wordDisplay'),
+            flashcard: document.getElementById('flashcard'),
+            prevBtn: document.getElementById('prevBtn'),
+            nextBtn: document.getElementById('nextBtn')
+        };
+
+        // Initialize
+        async function init() {
+            try {
+                const res = await fetch(`/api/study/words?category=${category}&letter=${letter}`);
+                words = await res.json();
+
+                if (words.length === 0) {
+                    alert('No words found for this selection.');
+                    window.location.href = 'flashcards_select.html?category=' + category;
+                    return;
+                }
+
+                renderWord();
+            } catch (e) {
+                alert('Error loading words.');
+            }
+        }
+
+        async function renderWord() {
+            const word = words[currentIdx].word;
+
+            // Reset flip state
+            isFlipped = false;
+            els.flashcard.classList.remove('flipped');
+
+            // Update UI
+            els.progress.textContent = `Word ${currentIdx + 1} / ${words.length}`;
+            els.wordDisplay.textContent = word;
+
+            // Navigation buttons
+            els.prevBtn.disabled = currentIdx === 0;
+            els.nextBtn.disabled = currentIdx === words.length - 1;
+
+            els.defArea.textContent = 'Loading definition...';
+
+            els.audioBtn.onclick = (e) => {
+                e.stopPropagation(); // Prevent card flip
+                TTS.speak(word);
+            };
+            document.getElementById('altAudioBtn').onclick = (e) => {
+                e.stopPropagation();
+                TTS.playOnline(word);
+            };
+
+            // Auto speak
+            setTimeout(() => TTS.speak(word), 300);
+
+            // Fetch definition
+            try {
+                const defRes = await fetch(`/api/definition/${word}`);
+                const def = await defRes.text();
+                els.defArea.textContent = def || "No definition available.";
+            } catch {
+                els.defArea.textContent = "Definition unavailable.";
+            }
+        }
+
+        function flipCard() {
+            isFlipped = !isFlipped;
+            if (isFlipped) {
+                els.flashcard.classList.add('flipped');
+            } else {
+                els.flashcard.classList.remove('flipped');
+            }
+        }
+
+        function nextWord() {
+            if (currentIdx < words.length - 1) {
+                if (isFlipped) {
+                    // Flip back first, then move
+                    els.flashcard.classList.remove('flipped');
+                    isFlipped = false;
+                    setTimeout(() => {
+                        currentIdx++;
+                        renderWord();
+                    }, 300); // Wait for half flip
+                } else {
+                    currentIdx++;
+                    renderWord();
+                }
+            }
+        }
+
+        function prevWord() {
+            if (currentIdx > 0) {
+                if (isFlipped) {
+                    // Flip back first, then move
+                    els.flashcard.classList.remove('flipped');
+                    isFlipped = false;
+                    setTimeout(() => {
+                        currentIdx--;
+                        renderWord();
+                    }, 300); // Wait for half flip
+                } else {
+                    currentIdx--;
+                    renderWord();
+                }
+            }
+        }
+
+
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextWord();
+            if (e.key === 'ArrowLeft') prevWord();
+            if (e.key === ' ' || e.key === 'Enter') flipCard();
+        });
+
+        init();
+    </script>
+</body>
+
+</html>

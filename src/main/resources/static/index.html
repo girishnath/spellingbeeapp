@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spelling Bee Whiz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600&family=Outfit:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container center-screen">
+        <div class="card entrance-card">
+            <h1>🐝 Spelling Bee Whiz</h1>
+            <p>Ready to test your skills? Enter your name to begin!</p>
+            <form id="loginForm">
+                <input type="text" id="username" placeholder="Your Name" required autocomplete="off">
+                <button type="submit" class="btn-primary">Enter Dashboard 🚀</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('username').value;
+            if (!name) return;
+
+            try {
+                const response = await fetch(`/api/login?name=${encodeURIComponent(name)}`, { method: 'POST' });
+                if (response.ok) {
+                    const student = await response.json();
+                    localStorage.setItem('studentId', student.id);
+                    localStorage.setItem('studentName', student.displayName);
+                    window.location.href = 'dashboard.html';
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Could not start quiz. Check connection.");
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mistakes Review</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600&family=Outfit:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="card" style="max-width: 800px;">
+            <h1>Your Learning List 📝</h1>
+            <p>Mistakes are just proof that you are trying!</p>
+            <a href="dashboard.html"
+                style="display: inline-block; margin-top: 0.5rem; text-decoration: none; color: #f59e0b; font-weight: bold;">&larr;
+                Back to Dashboard</a>
+
+            <div id="mistakesList" class="mistakes-container" style="text-align: left; margin-top: 2rem;">
+                <!-- Injected via JS -->
+                <p style="text-align: center; color: #999;">Loading...</p>
+            </div>
+
+            <a href="dashboard.html" class="btn-primary"
+                style="margin-top: 2rem; display: inline-block; text-decoration: none;">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        const studentId = localStorage.getItem('studentId');
+        if (!studentId) window.location.href = 'index.html';
+
+        async function loadMistakes() {
+            try {
+                const res = await fetch(`/api/mistakes/${studentId}`);
+                const mistakes = await res.json();
+                const container = document.getElementById('mistakesList');
+                container.innerHTML = '';
+
+                if (mistakes.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; font-size: 1.2rem;">🎉 Amazing! No mistakes found!</p>';
+                    return;
+                }
+
+                // Sort by timestamp desc
+                mistakes.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+
+                let lastDate = null;
+
+                mistakes.forEach(m => {
+                    // Date Separator
+                    const dateObj = new Date(m.timestamp || Date.now()); // Fallback if old data has no timestamp
+                    const dateStr = dateObj.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                    const timeStr = dateObj.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+                    if (dateStr !== lastDate) {
+                        const sep = document.createElement('div');
+                        sep.className = 'date-separator';
+                        sep.style.margin = '2rem 0 1rem 0';
+                        sep.style.paddingBottom = '0.5rem';
+                        sep.style.borderBottom = '2px solid var(--primary)';
+                        sep.style.color = 'var(--primary)';
+                        sep.style.fontWeight = 'bold';
+                        sep.style.fontSize = '1.1rem';
+                        sep.textContent = dateStr;
+                        container.appendChild(sep);
+                        lastDate = dateStr;
+                    }
+
+                    const div = document.createElement('div');
+                    div.style.padding = '1rem';
+                    div.style.borderBottom = '1px solid #EEE';
+                    div.style.display = 'flex';
+                    div.style.justifyContent = 'space-between';
+                    div.style.alignItems = 'center';
+
+                    div.innerHTML = `
+                        <div>
+                            <strong style="font-size: 1.2rem; color: var(--primary);">${m.word}</strong>
+                            <div style="font-size: 0.9rem; color: #666; margin-top: 0.2rem;">Type: ${m.type} • ${timeStr}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="color: var(--error); margin-bottom: 0.2rem;">ver: <del>${m.userAnswer}</del></div>
+                            <div style="color: var(--success); font-weight: 600;">ref: ${m.correctAnswer}</div>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (e) {
+                document.getElementById('mistakesList').innerHTML = '<p style="color:red; text-align:center;">Error loading mistakes.</p>';
+            }
+        }
+
+        loadMistakes();
+    </script>
+</body>
+
+</html>

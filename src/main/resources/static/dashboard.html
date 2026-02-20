@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Spelling Bee</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container fade-in">
+        <header>
+            <h1>Welcome, <span id="studentNameDisplay">Student</span>!</h1>
+            <p>What would you like to do today?</p>
+        </header>
+
+        <!-- Study Zone Section -->
+        <div class="section-header" onclick="toggleSection('studySection')">
+            <h2>📚 Study Zone</h2>
+            <div class="chevron">▼</div>
+        </div>
+        <div id="studySection" class="collapsible-content">
+            <div class="dashboard-grid">
+                <div class="card dashboard-card" onclick="openStudySelect('ONE_BEE')">
+                    <div class="icon">1️⃣</div>
+                    <h2>One Bee</h2>
+                    <p>Study One Bee Words</p>
+                    <div class="btn-primary">Study</div>
+                </div>
+
+                <div class="card dashboard-card" onclick="openStudySelect('TWO_BEE')">
+                    <div class="icon">2️⃣</div>
+                    <h2>Two Bee</h2>
+                    <p>Study Two Bee Words</p>
+                    <div class="btn-primary">Study</div>
+                </div>
+
+                <div class="card dashboard-card" onclick="openStudySelect('THREE_BEE')">
+                    <div class="icon">3️⃣</div>
+                    <h2>Three Bee</h2>
+                    <p>Study Three Bee Words</p>
+                    <div class="btn-primary">Study</div>
+                </div>
+
+                <div class="card dashboard-card" onclick="openStudySelect('NEW_WORDS')">
+                    <div class="icon">🆕</div>
+                    <h2>New Words</h2>
+                    <p>Study words that are new this year</p>
+                    <div class="btn-primary">Study</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flash Cards Section -->
+        <div class="section-header" onclick="toggleSection('flashCardsSection')">
+            <h2>🃏 Flash Cards</h2>
+            <div class="chevron">▼</div>
+        </div>
+        <div id="flashCardsSection" class="collapsible-content">
+            <div class="dashboard-grid">
+                <div class="card dashboard-card" onclick="openFlashCardsSelect('ONE_BEE')">
+                    <div class="icon">1️⃣</div>
+                    <h2>One Bee</h2>
+                    <p>Flash Cards for One Bee</p>
+                    <div class="btn-primary">Practice</div>
+                </div>
+
+                <div class="card dashboard-card" onclick="openFlashCardsSelect('TWO_BEE')">
+                    <div class="icon">2️⃣</div>
+                    <h2>Two Bee</h2>
+                    <p>Flash Cards for Two Bee</p>
+                    <div class="btn-primary">Practice</div>
+                </div>
+
+                <div class="card dashboard-card" onclick="openFlashCardsSelect('THREE_BEE')">
+                    <div class="icon">3️⃣</div>
+                    <h2>Three Bee</h2>
+                    <p>Flash Cards for Three Bee</p>
+                    <div class="btn-primary">Practice</div>
+                </div>
+
+                <div class="card dashboard-card" onclick="openFlashCardsSelect('NEW_WORDS')">
+                    <div class="icon">🆕</div>
+                    <h2>New Words</h2>
+                    <p>Flash Cards for New Words</p>
+                    <div class="btn-primary">Practice</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tests & Review Section -->
+        <div class="section-header" onclick="toggleSection('testsSection')">
+            <h2>📝 Tests & Review</h2>
+            <div class="chevron">▼</div>
+        </div>
+        <div id="testsSection" class="collapsible-content">
+            <div class="dashboard-grid">
+                <div class="card dashboard-card" onclick="startQuiz('NORMAL')">
+                    <div class="icon">🐝</div>
+                    <h2>Normal Test</h2>
+                    <p>50 Minutes • 45 Questions</p>
+                    <div class="btn-primary">Start</div>
+                </div>
+
+                <div class="card dashboard-card" onclick="startQuiz('QUICK')">
+                    <div class="icon">⚡</div>
+                    <h2>Quick Test</h2>
+                    <p>5 Minutes • 10 Questions</p>
+                    <div class="btn-secondary">Start</div>
+                </div>
+
+                <div class="card dashboard-card" onclick="startQuiz('SPELLING_ONLY')">
+                    <div class="icon">🔤</div>
+                    <h2>Spelling Only</h2>
+                    <p>50 Minutes • 45 Questions</p>
+                    <div class="btn-primary" style="background-color: var(--accent);">Start</div>
+                </div>
+
+                <div class="card dashboard-card" onclick="window.location.href='revision.html'">
+                    <div class="icon">📝</div>
+                    <h2>My Mistakes</h2>
+                    <p>Review and learn</p>
+                    <button class="btn-accent" style="width:100%; margin-top:0.5rem;"
+                        onclick="event.stopPropagation(); window.location.href='revision.html'">Review</button>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; text-align: center;">
+            <a href="index.html" style="color: #666; text-decoration: none;">Not you? Logout</a>
+        </div>
+    </div>
+
+    <script>
+        const name = localStorage.getItem('studentName');
+        if (!name) window.location.href = 'index.html';
+        document.getElementById('studentNameDisplay').textContent = name;
+
+        function startQuiz(mode) {
+            localStorage.setItem('quizMode', mode);
+            window.location.href = 'quiz.html';
+        }
+
+        function openStudySelect(category) {
+            window.location.href = `study_select.html?category=${category}`;
+        }
+
+        function openFlashCardsSelect(category) {
+            window.location.href = `flashcards_select.html?category=${category}`;
+        }
+
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId);
+            const header = content.previousElementSibling;
+
+            // Toggle current
+            content.classList.toggle('open');
+            header.classList.toggle('active');
+        }
+    </script>
+</body>
+
+</html>

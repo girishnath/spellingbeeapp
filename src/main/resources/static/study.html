@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Session</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600&family=Outfit:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .study-input {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.5rem;
+            border: 2px solid #EEE;
+            border-radius: 12px;
+            text-align: center;
+            margin: 1.5rem 0;
+            font-family: 'Fredoka', sans-serif;
+            outline: none;
+        }
+
+        .study-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .feedback {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            min-height: 2rem;
+        }
+
+        .correct {
+            color: var(--success);
+        }
+
+        .incorrect {
+            color: var(--error);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container center-screen">
+        <div class="container center-screen">
+            <div class="card" style="max-width: 600px; position: relative;">
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <button onclick="window.location.href='dashboard.html'"
+                        style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #666; font-weight: bold; display: flex; align-items: center; gap: 0.5rem; padding: 0;">
+                        <span>&larr;</span> Back
+                    </button>
+                    <div id="progress" style="color: #666; font-size: 1rem;">Word 1 / 10</div>
+                </div>
+
+                <div style="text-align: center;">
+                    <h2 style="color: var(--primary); margin-bottom: 0.5rem; font-size: 2rem;">Study Mode</h2>
+                </div>
+
+                <div style="margin-top: 2rem; text-align: center;">
+                    <div class="audio-container">
+                        <button class="audio-btn" id="audioBtn" title="Play Word">
+                            <svg class="audio-icon" viewBox="0 0 24 24">
+                                <path
+                                    d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+                            </svg>
+                        </button>
+                        <button class="btn-alt-audio" id="altAudioBtn" title="Alternate Pronunciation (Online)">
+                            <span style="font-size: 1rem;">🌍</span> Say it in a different way
+                        </button>
+                    </div>
+
+                    <div id="definitionArea"
+                        style="margin-top: 1.5rem; color: #555; background: #f9fafb; padding: 1rem; border-radius: 8px; font-style: italic;">
+                        Loading definition...
+                    </div>
+
+                    <input type="text" id="spellingInput" class="study-input" placeholder="Type spelling here..."
+                        autocomplete="off">
+
+                    <div id="feedback" class="feedback"></div>
+
+                    <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+                        <div style="display: flex; gap: 1rem;">
+                            <button class="btn-primary" id="checkBtn" onclick="checkSpelling()">Check</button>
+                            <button class="btn-secondary" id="showAnswerBtn"
+                                style="display: none; background-color: #f59e0b; color: white; border: none;"
+                                onclick="showAnswer()">Show Answer 🧐</button>
+                        </div>
+
+                        <button id="nextBtn"
+                            style="display: none; padding: 1rem 3rem; font-size: 1.3rem; background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); color: white; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); transition: transform 0.2s;"
+                            onclick="nextWord()">
+                            Next Word &rarr;
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="tts.js"></script>
+        <script>
+            const params = new URLSearchParams(window.location.search);
+            const category = params.get('category');
+            const letter = params.get('letter');
+
+            if (!category || !letter) window.location.href = 'dashboard.html';
+
+            let words = [];
+            let currentIdx = 0;
+            let attempts = 0;
+
+            const els = {
+                progress: document.getElementById('progress'),
+                audioBtn: document.getElementById('audioBtn'),
+                defArea: document.getElementById('definitionArea'),
+                input: document.getElementById('spellingInput'),
+                feedback: document.getElementById('feedback'),
+                checkBtn: document.getElementById('checkBtn'),
+                showAnswerBtn: document.getElementById('showAnswerBtn'),
+                nextBtn: document.getElementById('nextBtn')
+            };
+
+            // Initialize
+            async function init() {
+                try {
+                    const res = await fetch(`/api/study/words?category=${category}&letter=${letter}`);
+                    words = await res.json();
+
+                    if (words.length === 0) {
+                        alert('No words found for this selection.');
+                        window.location.href = 'study_select.html?category=' + category;
+                        return;
+                    }
+
+                    renderWord();
+                } catch (e) {
+                    alert('Error loading words.');
+                }
+            }
+
+            async function renderWord() {
+                const word = words[currentIdx].word;
+                attempts = 0;
+
+                els.progress.textContent = `Word ${currentIdx + 1} / ${words.length}`;
+                els.input.value = '';
+                els.input.disabled = false;
+                els.input.focus();
+
+                els.feedback.textContent = '';
+                els.feedback.className = 'feedback';
+
+                els.checkBtn.style.display = 'inline-block';
+                els.showAnswerBtn.style.display = 'none';
+                els.nextBtn.style.display = 'none'; // Hide next initially
+
+                els.defArea.textContent = 'Loading definition...';
+
+                els.audioBtn.onclick = () => TTS.speak(word);
+                document.getElementById('altAudioBtn').onclick = () => TTS.playOnline(word);
+
+                // Auto speak
+                setTimeout(() => TTS.speak(word), 300);
+
+                // Fetch definition
+                try {
+                    const defRes = await fetch(`/api/definition/${word}`);
+                    const def = await defRes.text();
+                    els.defArea.textContent = def || "No definition available.";
+                } catch {
+                    els.defArea.textContent = "Definition unavailable.";
+                }
+            }
+
+            function checkSpelling() {
+                const userSpelling = els.input.value.trim().toLowerCase();
+                const correctSpelling = words[currentIdx].word.toLowerCase();
+
+                if (userSpelling === correctSpelling) {
+                    success();
+                } else {
+                    attempts++;
+                    els.feedback.textContent = "Incorrect. Try again!";
+                    els.feedback.className = "feedback incorrect";
+                    TTS.speak(words[currentIdx].word);
+
+                    if (attempts >= 2) {
+                        els.showAnswerBtn.style.display = 'inline-block';
+                    }
+                }
+            }
+
+            function showAnswer() {
+                const correctSpelling = words[currentIdx].word;
+                els.input.value = correctSpelling;
+                els.feedback.innerHTML = `The answer is <strong style="color:var(--primary)">${correctSpelling}</strong>`;
+                els.feedback.className = "feedback";
+                endRound();
+            }
+
+            function success() {
+                els.feedback.textContent = "Correct! 🎉";
+                els.feedback.className = "feedback correct";
+                endRound();
+            }
+
+            function endRound() {
+                els.input.disabled = true;
+                els.checkBtn.style.display = 'none';
+                els.showAnswerBtn.style.display = 'none';
+                els.nextBtn.style.display = 'inline-block'; // Show big next button
+                els.nextBtn.focus();
+            }
+
+            function nextWord() {
+                if (currentIdx < words.length - 1) {
+                    currentIdx++;
+                    renderWord();
+                } else {
+                    alert("You've completed this list!");
+                    window.location.href = 'dashboard.html';
+                }
+            }
+
+
+
+            els.input.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    if (els.checkBtn.style.display !== 'none') {
+                        checkSpelling();
+                    } else {
+                        nextWord();
+                    }
+                }
+            });
+
+            init();
+        </script>
+</body>
+
+</html>

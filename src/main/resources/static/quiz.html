@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spelling Bee Quiz</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600&family=Outfit:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="loadingOverlay"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <div class="spinner"
+            style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite;">
+        </div>
+        <p style="margin-top: 20px; font-size: 1.2rem; color: #666;">Preparing your quiz...</p>
+    </div>
+    <style>
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+    <div class="container center-screen" id="quizContainer" style="display: none;">
+        <div class="card" style="max-width: 700px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; position:relative;">
+                <button onclick="exitQuiz()"
+                    style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #666; font-weight: bold; display: flex; align-items: center; gap: 0.5rem; padding: 0;">
+                    <span>&larr;</span> Exit
+                </button>
+
+                <div class="timer" id="timer" style="position: absolute; left: 50%; transform: translateX(-50%);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span id="timeDisplay">50:00</span>
+                </div>
+
+                <div class="progress">Question <strong id="currentQ">1</strong> / <span id="totalQ">45</span></div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div id="questionArea">
+                <h2 id="qInstruction" style="margin-bottom: 1rem; color: #666;">Spell the word:</h2>
+
+                <div class="audio-container">
+                    <button class="audio-btn" id="audioBtn" title="Play Word">
+                        <svg class="audio-icon" viewBox="0 0 24 24">
+                            <path
+                                d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+                        </svg>
+                    </button>
+                    <button class="btn-alt-audio" id="altAudioBtn" title="Alternate Pronunciation (Online)">
+                        <span style="font-size: 1rem;">🌍</span> Say it in a different way
+                    </button>
+                </div>
+
+                <div class="def-accordion" id="defAccordion">
+                    <div class="def-header" id="defHeader">
+                        <span>💡 Need a hint? Show Definition</span>
+                        <span id="arrow">▼</span>
+                    </div>
+                    <div class="def-content" id="defContent">
+                        <span id="defText">Loading definition...</span>
+                    </div>
+                </div>
+
+                <div class="options-grid" id="optionsGrid"></div>
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                <button class="btn-primary" id="nextBtn" disabled>Next Question &rarr;</button>
+            </div>
+        </div>
+    </div>
+    <script src="tts.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

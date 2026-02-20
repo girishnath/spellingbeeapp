@@ -1,0 +1,28 @@
+# Cloud Run deployment configuration
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: spellingbee-app
+spec:
+  template:
+    metadata:
+      annotations:
+        # Scale to zero when not in use (no ongoing costs)
+        autoscaling.knative.dev/minScale: "0"
+        # Limit max instances to prevent runaway costs
+        autoscaling.knative.dev/maxScale: "2"
+        # CPU throttling when idle
+        run.googleapis.com/cpu-throttling: "true"
+    spec:
+      containers:
+      - image: gcr.io/ai-portfolio/spellingbee-app:latest
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            # Minimal resources for cost optimization
+            memory: 512Mi
+            cpu: "1"
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "prod"
