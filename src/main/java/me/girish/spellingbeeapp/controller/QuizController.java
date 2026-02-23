@@ -23,18 +23,19 @@ public class QuizController {
     private DictionaryService dictionaryService;
 
     @PostMapping("/login")
-    public ResponseEntity<Student> login(@RequestParam String name) {
+    public ResponseEntity<Student> login(@RequestParam("name") String name) {
         return ResponseEntity.ok(quizService.registerStudent(name));
     }
 
     @GetMapping("/quiz/{studentId}")
-    public ResponseEntity<List<Question>> startQuiz(@PathVariable String studentId,
-            @RequestParam(defaultValue = "NORMAL") String mode) {
+    public ResponseEntity<List<Question>> startQuiz(@PathVariable("studentId") String studentId,
+            @RequestParam(name = "mode", defaultValue = "NORMAL") String mode) {
         return ResponseEntity.ok(quizService.generateQuiz(studentId, mode));
     }
 
     @GetMapping("/study/words")
-    public ResponseEntity<List<Question>> getStudyWords(@RequestParam String category, @RequestParam String letter) {
+    public ResponseEntity<List<Question>> getStudyWords(@RequestParam("category") String category,
+            @RequestParam("letter") String letter) {
         return ResponseEntity.ok(quizService.getStudyWords(category, letter));
     }
 
@@ -44,12 +45,12 @@ public class QuizController {
     }
 
     @GetMapping("/definition/{word}")
-    public ResponseEntity<String> getDefinition(@PathVariable String word) {
+    public ResponseEntity<String> getDefinition(@PathVariable("word") String word) {
         return ResponseEntity.of(dictionaryService.getDefinition(word));
     }
 
     @GetMapping("/mistakes/{studentId}")
-    public ResponseEntity<List<Mistake>> getMistakes(@PathVariable String studentId) {
+    public ResponseEntity<List<Mistake>> getMistakes(@PathVariable("studentId") String studentId) {
         return ResponseEntity.ok(quizService.getMistakes(studentId));
     }
 }
